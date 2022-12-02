@@ -39,7 +39,7 @@ Carry out playing RPS:
 	otherwise:
 		say "They aren't interested in playing with you.";
 
-To process opponent code (code - some text):
+To direct opponent to (code - some text):
 	If the code is "A":
 		now the opponent points at the Rock;
 	otherwise if the code is "B":
@@ -50,7 +50,7 @@ To process opponent code (code - some text):
 Playing game 1 is an action applying to nothing. 
 Carry out playing game 1:
 	Repeat through the Table of Strategy:
-		process opponent code Opponent entry;
+		direct opponent to the Opponent entry;
 		If the Player entry is "X":
 			now the player points at the Rock;
 		If the Player entry is "Y":
@@ -63,22 +63,20 @@ Carry out playing game 1:
 Playing game 2 is an action applying to nothing.
 Carry out playing game 2:
 	Repeat through the Table of Strategy:
-		process opponent code Opponent entry;
-		if the opponent points at an object (called the opponent piece):
+		direct opponent to the Opponent entry;
+		if the opponent points at a playing piece (called the opponent piece):
 			If the Player entry is "X": [lose]
-				let L be the list of playing pieces which are beaten by the opponent piece;
-				now the player points at entry 1 of L;
+				now the player points at entry 1 of the list of playing pieces which are beaten by the opponent piece;
 			If the Player entry is "Y": [draw]
 				now the player points at the opponent piece;
 			If the Player entry is "Z": [win]
-				let L be the list of playing pieces which beat the opponent piece;
-				now the player points at entry 1 of L;
+				now the player points at entry 1 of the list of playing pieces which beat the opponent piece; 
 		Try scoring the game; 
 	say "You play a few rounds of rock, paper, scissors. Playing the correct strategy, you beat Owt easily, but they seem grateful for the game."
 
 Scoring the game is an action applying to nothing.
 Carry out scoring the game:
-	If the player points at an object (called the player piece) and the opponent points at an object (called the opponent piece):
+	If the player points at a playing piece (called the player piece) and the opponent points at a playing piece (called the opponent piece):
 		increase the score by the score of the player piece;
 		if the player piece beats the opponent piece:
 			increase the score by 6;
