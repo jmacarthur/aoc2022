@@ -25,13 +25,12 @@ The rock beats the scissors. The scissors beat the paper. The paper beats the ro
 Pointing relates various people to one playing piece. 
 The verb to point at means the pointing relation.
 
-Playing game 1 is an action applying to nothing. Playing game 2 is an action applying to nothing.
-
-Understand "play [someone]" or "play with [someone]" as playing RPS. Playing RPS is an action applying to a thing.
+Understand "play [someone]" or "play with [someone]" as playing RPS. 
 
 instead of taking a playing piece:
 	say "They're symbols you can point at during a game; it would ruin the game if you moved them.";
 
+Playing RPS is an action applying to a thing.
 Carry out playing RPS:
 	if the noun is Eno:
 		try playing game 1;
@@ -48,6 +47,7 @@ To process opponent code (code - some text):
 	otherwise if the code is "C":
 		now the opponent points at the Scissors;	
 
+Playing game 1 is an action applying to nothing. 
 Carry out playing game 1:
 	Repeat through the Table of Strategy:
 		process opponent code Opponent entry;
@@ -57,16 +57,10 @@ Carry out playing game 1:
 			now the player points at the Paper;
 		If the Player entry is "Z":
 			now the player points at the Scissors;
-		If the player points at an object (called the player piece) and the opponent points at an object (called the opponent piece):
-			increase the score by the score of the player piece;
-			if the player piece beats the opponent piece:
-				increase the score by 6;
-			otherwise if the opponent piece beats the player piece:
-				increase the score by 0;
-			otherwise:
-				increase the score by 3; 
-	say "You play a few rounds of rock, paper scissors. Eno appears confused, as though you don't quite understand the strategy.";
+		Try scoring the game;
+	say "You play a few rounds of rock, paper, scissors. Eno appears confused, as though you don't quite understand the strategy.";
 
+Playing game 2 is an action applying to nothing.
 Carry out playing game 2:
 	Repeat through the Table of Strategy:
 		process opponent code Opponent entry;
@@ -79,15 +73,21 @@ Carry out playing game 2:
 			If the Player entry is "Z": [win]
 				let L be the list of playing pieces which beat the opponent piece;
 				now the player points at entry 1 of L;
-		If the player points at an object (called the player piece) and the opponent points at an object (called the opponent piece):
-			increase the score by the score of the player piece;
-			if the player piece beats the opponent piece:
-				increase the score by 6;
-			otherwise if the opponent piece beats the player piece:
-				increase the score by 0;
-			otherwise:
-				increase the score by 3; 
-	say "You play a few rounds of rock, paper scissors. Playing the correct strategy, you beat Owt easily, but they seem grateful for the game."
+		Try scoring the game; 
+	say "You play a few rounds of rock, paper, scissors. Playing the correct strategy, you beat Owt easily, but they seem grateful for the game."
+
+Scoring the game is an action applying to nothing.
+Carry out scoring the game:
+	If the player points at an object (called the player piece) and the opponent points at an object (called the opponent piece):
+		increase the score by the score of the player piece;
+		if the player piece beats the opponent piece:
+			increase the score by 6;
+		otherwise if the opponent piece beats the player piece:
+			increase the score by 0;
+		otherwise:
+			increase the score by 3;
+	otherwise:
+		say "Either you weren't pointing to a playing piece, or your opponent wasn't, so this doesn't work."; 
 
 Chapter 2 - The Strategy Guide
 
