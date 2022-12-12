@@ -1,0 +1,13 @@
+This is very much a case of just knowing that there's a standard
+algorithm for this (A* search, or some other path search algorithm),
+and some input processing.
+
+The A* algorithm I'm using here is so fast that you could check all
+starting 'a' positions for part 2 - but in my case, there's an obvious
+starting place.
+
+By searching for 'a' in a text editor for the input, which will
+highlight all the 'a' points (depending on your editor) - it's easy to
+see a single 'c' point which the path must go through. All the 'b'
+points are in a single line near the left edge of the graph, so we can
+just pick the 'a' closest to that pinch point as the start.
