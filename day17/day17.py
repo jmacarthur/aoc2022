@@ -21,8 +21,6 @@ class Grid():
 with open(sys.argv[1]) as f:
     instructions = f.readline().strip()
 
-# Copy the instructions four times. This ensures the length is divisible by 5.
-instructions *= 5
 
 piece_sources = [ [ "####" ],
                   [ ".#.",
@@ -38,12 +36,16 @@ piece_sources = [ [ "####" ],
                   [ "##",
                     "##" ] ]
 
+# Copy the instructions several times, to ensure the instruction length is divisible by the number of pieces.
+instructions *= len(piece_sources)
+
 pieces = []
-for p in piece_sources:
+for (n,p) in enumerate(piece_sources, 1):
     g = Grid(len(p[0]), len(p))
     for (row, line) in enumerate(p):
         for (col, char) in enumerate(line):
             g.set(col, row, char)
+    g.ident = n
     pieces.append(g)
 
 def collides(arena, current_piece, xpos, ypos):
@@ -59,7 +61,6 @@ def collides(arena, current_piece, xpos, ypos):
 
 def solidify(arena, current_piece, xpos, ypos):
     # There's no range checks on this!
-    #print(f"Solidifying piece!")
     for dy in range(0, current_piece.height):
         for dx in range(0, current_piece.width):
             if current_piece.get(dx, dy) == '#':
@@ -78,14 +79,25 @@ def find_first_occupied_line(arena):
 next_piece_no = 0
 instruction_position = 0
 removed_lines = 0
+
+# Various hashes which keep track of repeating loops.
+faultlines = {}
+repeating_units = {}
+piece_count_at_instruction = {}
+
 print(f"Instruction line is {len(instructions)} characters long.")
-for p in range(0,2022):
+
+# Replace this with 2022 for part 1.
+piece_count = 1000000000000
+
+while piece_count > 0:
     current_piece = pieces[next_piece_no% len(pieces)]
+    piece_count -= 1
     next_piece_no += 1
     xpos = 2
     ypos = 0
-    if p % 1000==0:
-        print(f"Iteration {p}")
+    if piece_count % 1000==0:
+        print(f"{piece_count} pieces remaining")
     # Scan for a complete line and remove everything after it, but retain the count
     for (n,l) in enumerate(arena):
         if all([c=='#' for c in l]):
@@ -102,29 +114,53 @@ for p in range(0,2022):
     ypos = first_occupied_line - current_piece.height - 3
 
     while True:
-       # First, push left or right
-       instruction = instructions[instruction_position]
-       instruction_position = (instruction_position+1) % len(instructions)
-       dx = -1 if instruction=='<' else 1
-       if collides(arena, current_piece, xpos+dx, ypos):
-           pass
-           #print(f"Piece tries to move by {dx}, but is blocked")
-       else:
-           xpos += dx
-           #print(f"Piece moves by {dx} to {xpos}")
-       if collides(arena, current_piece, xpos, ypos+1):
-           #print(f"Piece tries to move down, but is blocked")
-           solidify(arena, current_piece, xpos, ypos)
-           if ypos == 3:
-               print(f"Piece lands on a fault line after instruction {instruction_position}")
-           break
-       else:
-           ypos += 1
-           #print(f"Piece moves down")
+        # First, push left or right
+        instruction = instructions[instruction_position]
+        instruction_position = (instruction_position+1) % len(instructions)
+        dx = -1 if instruction=='<' else 1
+
+        if collides(arena, current_piece, xpos+dx, ypos):
+            # Piece tries to move horizontally, but is blocked.
+            pass
+        else:
+            xpos += dx
+
+        # Now try to move down
+        if collides(arena, current_piece, xpos, ypos+1):
+            # Piece tries to move down, but is blocked.
+            solidify(arena, current_piece, xpos, ypos)
+
+            if ypos == 3:
+                # If we landed at ypos 3, then no part of our piece entered a partially occupied line; we call this a
+                # fault line because you can draw a complete horizontal line which does not divide any piece.
+                if instruction_position in faultlines:
+                    # If we already saw a faultline at this instruction position, it's possible we're in a repeating loop.
+                    pattern_length = len(arena) - find_first_occupied_line(arena) + removed_lines - faultlines[instruction_position]
+                    if instruction_position in repeating_units and repeating_units[instruction_position] == pattern_length:
+                        skip_blocks = piece_count // pattern_length
+                        piece_count_diff = piece_count_at_instruction[instruction_position] - piece_count
+                        print(f"Skip forward {skip_blocks} blocks; of {pattern_length} height and {piece_count_diff} pieces")
+                        piece_count -= skip_blocks * piece_count_diff
+                        removed_lines += skip_blocks * pattern_length
+
+                        # Clear everything out and start again. This might not be necessary.
+                        repeating_units = {}
+                        piece_count_at_instuction = {}
+                        faultlines = {}
+                    else:
+                        repeating_units[instruction_position] = pattern_length
+                        piece_count_at_instruction[instruction_position] = piece_count
+                # Record the total occupied length of the arena in the faultline hash.
+                faultlines[instruction_position] = len(arena) - find_first_occupied_line(arena) + removed_lines
+            break
+        else:
+            # Piece moves down normally.
+            ypos += 1
 
 # Print arena
 for l in arena:
     print("|" + "".join(l) + "|")
+print(f"+ {removed_lines} removed lines")
 
 first_occupied_line = find_first_occupied_line(arena)
 dist = len(arena)-first_occupied_line
