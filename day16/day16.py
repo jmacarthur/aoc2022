@@ -13,7 +13,6 @@ class Valve():
         self.flowrate = flowrate
         self.connections = connections
 
-roomstate = {}
 rooms = {}
 useful_valve_count = 0
 roomlist = []
@@ -24,7 +23,6 @@ with open(sys.argv[1]) as f:
             flow = int(m.group(2))
             ident = m.group(1)
             rooms[m.group(1)] = Valve(ident, flow, m.group(3).split(", "))
-            roomstate[ident] = False
             roomlist.append(ident)
             if flow>0:
                 useful_valve_count += 1
@@ -68,55 +66,44 @@ for start in valve_rooms + [start_room]:
             routes[(start, end)] = len(route)
             routes[(end, start)] = len(route)
 
-def valves_complete(moves_so_far, minute):
-    valves_complete = []
-    move_time = 0
-    if len(moves_so_far) <= 1:
-        return []
-    for i in range(1,len(moves_so_far)):
-        last = moves_so_far[i-1]
-        dest = moves_so_far[i]
-        move_time += routes[(last, dest)] + 1
-        if minute > move_time:
-            valves_complete.append(dest)
-    return valves_complete
-
-def can_move(moves_so_far, minute):
-    """Determine if we're ready to move; assuming we turned on a valve
-    after each move.
-    """
-    move_time = 0
-    if len(moves_so_far) <= 1:
-        return True
-    for i in range(1,len(moves_so_far)):
-        last = moves_so_far[i-1]
-        dest = moves_so_far[i]
-        move_time += routes[(last, dest)] + 1
-    return minute > move_time
-
 def complete_run(minute, player_moves, player_available, max_time):
-    flow = sum([rooms[v].flowrate for v in valves_complete(player_moves, minute)])
+    # player_moves indicates desired moves, not completed moves.
+    # Figure out how many valves we've opened (we always open a valve
+    # after arriving at a room) and whether we are due to move at this
+    # minute.
+    valves_complete = []
+    if len(player_moves) <= 1:
+        can_move = True
+    else:
+        move_time = 0
+        for i in range(1,len(player_moves)):
+            last = player_moves[i-1]
+            dest = player_moves[i]
+            move_time += routes[(last, dest)] + 1
+            if move_time < minute:
+                valves_complete.append(dest)
+        can_move = move_time < minute
+
+    flow = sum([rooms[v].flowrate for v in valves_complete])
 
     if minute >= max_time:
         return flow
 
     if len(player_moves) >= len(player_available)+1:
         # We can't make any more moves. But we might still be in the
-        # middle of an uncompeted move, so we still use recursion to
+        # middle of an uncompleted move, so we still use recursion to
         # figure out the final score.
         return flow + complete_run(minute+1, player_moves, [], max_time)
 
-    if can_move(player_moves, minute):
+    if can_move:
         best_score = None
-        best_dest = None
         for dest in player_available:
             if dest in player_moves:
                 continue
             potential_score = complete_run(minute+1, player_moves + [dest], player_available, max_time)
             if best_score is None or potential_score > best_score:
                 best_score = potential_score
-                best_dest = dest
-        if best_dest:
+        if best_score:
             return flow + best_score
 
     return flow + complete_run(minute+1, player_moves, player_available, max_time)
@@ -126,7 +113,7 @@ score = complete_run(1, ['AA'], valve_rooms, 30)
 print(f"Score for part 1: {score}")
 
 # Part 2: Max score in 26 minutes, two actors
-""" Partition the valve rooms into two lists; there are
+""" Partition the valve rooms into two lists. There are
 2**(valve_rooms) ways to do this, although it doesn't matter which
 list gets given to which actor, so we only need to process half of
 that. Then, each actor only has to get the optimal path for their
