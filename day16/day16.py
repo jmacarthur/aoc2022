@@ -52,21 +52,42 @@ def find_route(start, end, visited):
                 best_route = [d] + r
     return best_route
 
-routes = {}
+route_cost = {}
 
 print("Precomputing travel times...")
 valve_rooms = [r for r in roomlist if rooms[r].flowrate > 0]
 for start in valve_rooms + [start_room]:
-    routes[(start, start)] = 0
+    route_cost[(start, start)] = 0
     for end in valve_rooms:
-        if (start, end) in routes:
+        if (start, end) in route_cost:
             continue
         route = find_route(start, end, [])
         if start != end:
-            routes[(start, end)] = len(route)
-            routes[(end, start)] = len(route)
+            route_cost[(start, end)] = len(route)
+            route_cost[(end, start)] = len(route)
 
 def complete_run(minute, player_moves, player_available, max_time):
+    """Figure out the best score possible from this minute, including the
+flow that occurs on this minute.
+
+    Parameters
+    ----------
+    minute : int
+        Current minute; the minute on which this move starts.
+    player_moves : list
+        List of moves (room names) which the player intends to make.
+    player_available : list
+        List of moves (room names) the player can move to.
+    max_time: int
+        The highest numbered minute which release is counted on.
+
+    Returns
+    -------
+    int
+        The best release score we can make from this position.
+
+    """
+
     # player_moves indicates desired moves, not completed moves.
     # Figure out how many valves we've opened (we always open a valve
     # after arriving at a room) and whether we are due to move at this
@@ -79,7 +100,7 @@ def complete_run(minute, player_moves, player_available, max_time):
         for i in range(1,len(player_moves)):
             last = player_moves[i-1]
             dest = player_moves[i]
-            move_time += routes[(last, dest)] + 1
+            move_time += route_cost[(last, dest)] + 1
             if move_time < minute:
                 valves_complete.append(dest)
         can_move = move_time < minute
@@ -133,8 +154,8 @@ for i in range(0, 2**(len(valve_rooms)-1)):
 
     score = complete_run(1, ['AA'], player_available, 26)
     score += complete_run(1, ['AA'], elephant_available, 26)
-    print(f"Partition {i} ({player_available}, {elephant_available}: best score {score}")
+    print(f"Partition {i} ({' '.join(player_available)} | {' '.join(elephant_available)}): best score {score}")
     if max_score is None or score > max_score:
-        print("New best!")
+        print("New high score!")
         max_score = score
 print(f"Overall best for part 2: {max_score}")
