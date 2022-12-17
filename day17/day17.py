@@ -133,6 +133,9 @@ while piece_count > 0:
             if ypos == 3:
                 # If we landed at ypos 3, then no part of our piece entered a partially occupied line; we call this a
                 # fault line because you can draw a complete horizontal line which does not divide any piece.
+
+                # TODO: This doesn't mean the next piece can't drop in under where this one lands. I seem to get away with it
+                # for my input, but I might just be lucky.
                 if instruction_position in faultlines:
                     # If we already saw a faultline at this instruction position, it's possible we're in a repeating loop.
                     pattern_length = len(arena) - find_first_occupied_line(arena) + removed_lines - faultlines[instruction_position]
