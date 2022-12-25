@@ -2,6 +2,8 @@
 
 # Uses python-astar by Julien Rialland. Get this from https://github.com/jrialland/python-astar.git
 from python_astar import astar
+
+from enum import Enum
 import sys
 
 if len(sys.argv)<5:
@@ -16,6 +18,10 @@ with open(sys.argv[1]) as f:
     header = lines.pop(0)
     footer = lines.pop(-1)
 
+class Direction(Enum):
+    FORWARD=1
+    REVERSE=-1
+    
 blizzard_char = ['>', 'v', '<', '^' ]
 dx = [ 1, 0, -1, 0 ]
 dy = [ 0, 1, 0, -1 ]
@@ -52,11 +58,11 @@ start_time = int(sys.argv[2])
 time_limit = int(sys.argv[4])
 end_time = start_time+time_limit
 if sys.argv[3] == 'r':
-    direction = -1
+    direction = Direction.REVERSE
     start = (width-1, height, start_time)
     end = (0, -1, end_time)
 else:
-    direction = 1
+    direction = Direction.FORWARD
     start = (0,-1,start_time)
     end = (width-1, height, end_time)
 
@@ -70,17 +76,16 @@ def can_move(x, y, time):
     return True
     
 def moves(position):
-    global direction
     (x, y, time) = position
     if time > end_time:
         return []
-    if (x == width-1 and y==height and direction==1) or (x==0 and y==-1 and direction==-1):
+    if (x == width-1 and y==height and direction==Direction.FORWARD) or (x==0 and y==-1 and direction==Direction.REVERSE):
         # Reached the destination? Just stay here.
         return [(x,y,time+1)]
     candidates = []
-    for direction in range(0,4):
-        if can_move(x+dx[direction], y+dy[direction], time+1):
-            candidates.append((x+dx[direction], y+dy[direction], time+1))
+    for movedirection in range(0,4):
+        if can_move(x+dx[movedirection], y+dy[movedirection], time+1):
+            candidates.append((x+dx[movedirection], y+dy[movedirection], time+1))
     if can_move(x, y, time+1):
         # Add the 'waiting here' option.
         candidates.append((x,y,time+1))
